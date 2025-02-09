@@ -22,9 +22,16 @@ local function scrape()
     local function is_modem_connected()
         local handle = io.popen("uqmi -d /dev/cdc-wdm0 --get-data-status 2>/dev/null")
         if not handle then return false end
-        local result = handle:read("*a"):gsub("\n", ""):lower()
+        local result = handle:read("*a"):gsub("[\n\"%s]+", ""):lower()
         handle:close()
-        return result == "connected"
+        if result == "connected" then
+            return true
+        elseif result == "disconnected" then
+            return false
+        else
+            print("Error: Status is neither 'connected' nor 'disconnected'")
+            return nil  -- Return nil if the status doesn't match expected values
+        end
     end
 
     local modem_connected = is_modem_connected() and 1 or 0
